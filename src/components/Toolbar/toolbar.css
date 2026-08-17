@@ -32,6 +32,12 @@
   margin-left: auto;
 }
 
+.rtmk-toolbar-btn-active {
+  background: var(--rtmk-surface-hover);
+  border-color: var(--rtmk-accent);
+  color: var(--rtmk-accent);
+}
+
 .rtmk-toolbar-sep {
   width: 1px;
   align-self: stretch;

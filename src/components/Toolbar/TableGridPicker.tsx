@@ -5,9 +5,10 @@ const MAX_COLS = 8;
 
 type TableGridPickerProps = {
   onInsert: (rows: number, cols: number) => void;
+  disabled?: boolean;
 };
 
-export function TableGridPicker({ onInsert }: TableGridPickerProps) {
+export function TableGridPicker({ onInsert, disabled }: TableGridPickerProps) {
   const [open, setOpen] = useState(false);
   const [hover, setHover] = useState({ rows: 0, cols: 0 });
   const rootRef = useRef<HTMLDivElement>(null);
@@ -23,7 +24,13 @@ export function TableGridPicker({ onInsert }: TableGridPickerProps) {
 
   return (
     <div className="rtmk-toolbar-popover-root" ref={rootRef}>
-      <button type="button" className="rtmk-toolbar-btn" title="Insert Table" onClick={() => setOpen((o) => !o)}>
+      <button
+        type="button"
+        className="rtmk-toolbar-btn"
+        title="Insert Table"
+        onClick={() => setOpen((o) => !o)}
+        disabled={disabled}
+      >
         Table
       </button>
       {open && (

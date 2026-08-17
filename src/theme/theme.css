@@ -60,6 +60,22 @@ button {
   font-family: inherit;
 }
 
+.rtmk-source-view {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  resize: none;
+  border: none;
+  outline: none;
+  padding: 16px 20px;
+  background: var(--rtmk-bg);
+  color: var(--rtmk-text);
+  font-family: "Space Mono", Menlo, monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  tab-size: 2;
+}
+
 .rtmk-empty-state {
   flex: 1;
   display: flex;

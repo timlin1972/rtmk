@@ -3,6 +3,8 @@ import { useTheme } from "../theme/ThemeProvider";
 import { TocButton } from "./Toolbar/TocButton";
 import { TableGridPicker } from "./Toolbar/TableGridPicker";
 import { ManualModal } from "./Toolbar/ManualModal";
+import { VersionModal } from "./Toolbar/VersionModal";
+import { APP_VERSION } from "../version";
 import "./Toolbar/toolbar.css";
 
 type AppToolbarProps = {
@@ -18,6 +20,8 @@ type AppToolbarProps = {
   onInsertToc: (depth: number) => void;
   onInsertTable: (rows: number, cols: number) => void;
   onToggleLineNumbers: () => void;
+  sourceMode: boolean;
+  onToggleSourceMode: () => void;
 };
 
 export function AppToolbar({
@@ -33,9 +37,12 @@ export function AppToolbar({
   onInsertToc,
   onInsertTable,
   onToggleLineNumbers,
+  sourceMode,
+  onToggleSourceMode,
 }: AppToolbarProps) {
   const { theme, toggleTheme } = useTheme();
   const [manualOpen, setManualOpen] = useState(false);
+  const [versionOpen, setVersionOpen] = useState(false);
 
   return (
     <div className="rtmk-toolbar">
@@ -57,8 +64,8 @@ export function AppToolbar({
 
       <span className="rtmk-toolbar-sep" />
 
-      <TocButton onInsert={onInsertToc} />
-      <TableGridPicker onInsert={onInsertTable} />
+      <TocButton onInsert={onInsertToc} disabled={sourceMode} />
+      <TableGridPicker onInsert={onInsertTable} disabled={sourceMode} />
 
       <span className="rtmk-toolbar-sep" />
 
@@ -70,8 +77,21 @@ export function AppToolbar({
         className="rtmk-toolbar-btn"
         title="Toggle line numbers for the code block the cursor is in"
         onClick={onToggleLineNumbers}
+        disabled={sourceMode}
       >
         Toggle Line #
+      </button>
+
+      <span className="rtmk-toolbar-sep" />
+
+      <button
+        type="button"
+        className={sourceMode ? "rtmk-toolbar-btn rtmk-toolbar-btn-active" : "rtmk-toolbar-btn"}
+        title="Toggle raw markdown source view"
+        onClick={onToggleSourceMode}
+        disabled={!hasActiveDoc}
+      >
+        {sourceMode ? "Rendered" : "Raw"}
       </button>
 
       <span className="rtmk-toolbar-title">
@@ -79,11 +99,20 @@ export function AppToolbar({
         {title}
       </span>
 
-      <button type="button" className="rtmk-toolbar-btn rtmk-toolbar-btn-right" onClick={toggleTheme} title="Toggle theme">
+      <button
+        type="button"
+        className="rtmk-toolbar-btn rtmk-toolbar-btn-right"
+        onClick={() => setVersionOpen(true)}
+        title="Version"
+      >
+        v{APP_VERSION}
+      </button>
+      <button type="button" className="rtmk-toolbar-btn" onClick={toggleTheme} title="Toggle theme">
         {theme === "dark" ? "☀" : "☾"}
       </button>
 
       {manualOpen && <ManualModal onClose={() => setManualOpen(false)} />}
+      {versionOpen && <VersionModal onClose={() => setVersionOpen(false)} />}
     </div>
   );
 }

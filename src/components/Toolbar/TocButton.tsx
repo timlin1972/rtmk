@@ -2,9 +2,10 @@ import { useEffect, useRef, useState } from "react";
 
 type TocButtonProps = {
   onInsert: (depth: number) => void;
+  disabled?: boolean;
 };
 
-export function TocButton({ onInsert }: TocButtonProps) {
+export function TocButton({ onInsert, disabled }: TocButtonProps) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -19,7 +20,13 @@ export function TocButton({ onInsert }: TocButtonProps) {
 
   return (
     <div className="rtmk-toolbar-popover-root" ref={rootRef}>
-      <button type="button" className="rtmk-toolbar-btn" title="Insert Table of Contents" onClick={() => setOpen((o) => !o)}>
+      <button
+        type="button"
+        className="rtmk-toolbar-btn"
+        title="Insert Table of Contents"
+        onClick={() => setOpen((o) => !o)}
+        disabled={disabled}
+      >
         TOC
       </button>
       {open && (

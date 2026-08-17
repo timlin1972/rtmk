@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { ThemeProvider } from "./theme/ThemeProvider";
 import { usePersistedState } from "./hooks/usePersistedState";
@@ -16,6 +16,7 @@ function AppInner() {
 
   const workspace = useWorkspace(recentsApi.add);
   const editorRef = useRef<EditorHandle>(null);
+  const [sourceMode, setSourceMode] = useState(false);
 
   useEffect(() => {
     const win = getCurrentWindow();
@@ -56,6 +57,8 @@ function AppInner() {
         onInsertToc={(depth) => editorRef.current?.insertToc(depth)}
         onInsertTable={(rows, cols) => editorRef.current?.insertTable(rows, cols)}
         onToggleLineNumbers={() => editorRef.current?.toggleLineNumbers()}
+        sourceMode={sourceMode}
+        onToggleSourceMode={() => setSourceMode((s) => !s)}
       />
       <div className="rtmk-body">
         <Sidebar
@@ -71,13 +74,22 @@ function AppInner() {
         />
         <div className="rtmk-main">
           {activeDoc ? (
-            <Editor
-              key="editor"
-              ref={editorRef}
-              docId={activeDoc.id}
-              initialContent={activeDoc.content}
-              onMarkdownChange={workspace.updateActiveContent}
-            />
+            sourceMode ? (
+              <textarea
+                className="rtmk-source-view"
+                value={activeDoc.content}
+                onChange={(e) => workspace.updateActiveContent(e.target.value)}
+                spellCheck={false}
+              />
+            ) : (
+              <Editor
+                key="editor"
+                ref={editorRef}
+                docId={activeDoc.id}
+                initialContent={activeDoc.content}
+                onMarkdownChange={workspace.updateActiveContent}
+              />
+            )
           ) : (
             <EmptyState onNew={workspace.newFile} onOpen={workspace.openFile} />
           )}
