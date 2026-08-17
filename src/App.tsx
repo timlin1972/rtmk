@@ -55,6 +55,7 @@ function AppInner() {
         onSaveAs={workspace.saveActiveAs}
         onInsertToc={(depth) => editorRef.current?.insertToc(depth)}
         onInsertTable={(rows, cols) => editorRef.current?.insertTable(rows, cols)}
+        onToggleLineNumbers={() => editorRef.current?.toggleLineNumbers()}
       />
       <div className="rtmk-body">
         <Sidebar

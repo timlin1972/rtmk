@@ -56,6 +56,105 @@
   overflow-y: auto;
 }
 
+.rtmk-editor .milkdown h1 {
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--crepe-color-outline);
+}
+
+.rtmk-editor .milkdown .ProseMirror h1 {
+  font-size: 2.6em;
+}
+
+.rtmk-editor .milkdown .ProseMirror h2 {
+  font-size: 2.05em;
+}
+
+.rtmk-editor .milkdown .ProseMirror h3 {
+  font-size: 1.65em;
+}
+
+.rtmk-editor .milkdown .ProseMirror h4 {
+  font-size: 1.35em;
+}
+
+.rtmk-editor .milkdown .ProseMirror h5 {
+  font-size: 1.15em;
+}
+
+.rtmk-editor .milkdown .ProseMirror h6 {
+  font-size: 1em;
+  color: var(--crepe-color-on-surface-variant);
+}
+
+.rtmk-editor [data-line-numbers="off"] .cm-lineNumbers {
+  display: none !important;
+}
+
+.rtmk-editor .milkdown .ProseMirror .rtmk-source-line,
+.rtmk-editor .milkdown .ProseMirror .rtmk-source-line * {
+  font-family: var(--crepe-font-default) !important;
+  font-size: 1em !important;
+  font-weight: normal !important;
+  font-style: normal !important;
+  text-decoration: none !important;
+  color: var(--crepe-color-on-background) !important;
+  background: none !important;
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+}
+
+.rtmk-editor .milkdown .ProseMirror .rtmk-source-line[data-rtmk-prefix]::before {
+  content: attr(data-rtmk-prefix);
+  color: var(--crepe-color-outline);
+  white-space: pre;
+}
+
+.rtmk-editor .milkdown .ProseMirror li.list-item:has(> .children .rtmk-source-line) > .label-wrapper {
+  display: none;
+}
+
+.rtmk-mark-strong::before,
+.rtmk-mark-strong::after {
+  content: "**";
+}
+
+.rtmk-mark-emphasis::before,
+.rtmk-mark-emphasis::after {
+  content: "*";
+}
+
+.rtmk-mark-strike::before,
+.rtmk-mark-strike::after {
+  content: "~~";
+}
+
+.rtmk-mark-code::before,
+.rtmk-mark-code::after {
+  content: "`";
+}
+
+.rtmk-mark-link::before {
+  content: "[";
+}
+
+.rtmk-mark-link::after {
+  content: "](" attr(data-href) ")";
+}
+
+.rtmk-mark-strong::before,
+.rtmk-mark-strong::after,
+.rtmk-mark-emphasis::before,
+.rtmk-mark-emphasis::after,
+.rtmk-mark-strike::before,
+.rtmk-mark-strike::after,
+.rtmk-mark-code::before,
+.rtmk-mark-code::after,
+.rtmk-mark-link::before,
+.rtmk-mark-link::after {
+  color: var(--crepe-color-outline);
+}
+
 .rtmk-toc-block {
   border: 1px solid var(--rtmk-border);
   border-radius: 6px;

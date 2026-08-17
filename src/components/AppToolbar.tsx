@@ -17,6 +17,7 @@ type AppToolbarProps = {
   onSaveAs: () => void;
   onInsertToc: (depth: number) => void;
   onInsertTable: (rows: number, cols: number) => void;
+  onToggleLineNumbers: () => void;
 };
 
 export function AppToolbar({
@@ -31,6 +32,7 @@ export function AppToolbar({
   onSaveAs,
   onInsertToc,
   onInsertTable,
+  onToggleLineNumbers,
 }: AppToolbarProps) {
   const { theme, toggleTheme } = useTheme();
   const [manualOpen, setManualOpen] = useState(false);
@@ -62,6 +64,14 @@ export function AppToolbar({
 
       <button type="button" className="rtmk-toolbar-btn" onClick={() => setManualOpen(true)}>
         Manual
+      </button>
+      <button
+        type="button"
+        className="rtmk-toolbar-btn"
+        title="Toggle line numbers for the code block the cursor is in"
+        onClick={onToggleLineNumbers}
+      >
+        Toggle Line #
       </button>
 
       <span className="rtmk-toolbar-title">

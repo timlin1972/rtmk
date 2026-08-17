@@ -1,7 +1,8 @@
-import { $node, $view, $prose, $remark, outline } from "@milkdown/kit/utils";
+import { $node, $view, $prose, $remark } from "@milkdown/kit/utils";
 import { Plugin, PluginKey } from "@milkdown/kit/prose/state";
-import type { NodeViewConstructor } from "@milkdown/kit/prose/view";
-import { buildTocMarkdownList } from "../lib/toc";
+import type { NodeViewConstructor, EditorView } from "@milkdown/kit/prose/view";
+import type { Node as ProseNode } from "@milkdown/kit/prose/model";
+import { buildTocMarkdownList, type HeadingInfo } from "../lib/toc";
 
 const TOC_NODE_ID = "rtmk_toc";
 const TOC_MDAST_TYPE = "rtmkToc";
@@ -31,7 +32,24 @@ export const tocRemark = $remark("rtmkTocRemark", () => () => (tree: MdastNode) 
   renameTocCodeBlocks(tree);
 });
 
-export const tocNode = $node(TOC_NODE_ID, (ctx) => ({
+// Shared reference to the live EditorView, set once ProseMirror-view has
+// actually finished constructing it (see tocRefreshPlugin below). NodeViews
+// and markdown-serialize runners must not reach for the view via ctx, since
+// during initial doc parsing / NodeView construction the view isn't wired
+// into ctx yet.
+let sharedEditorView: EditorView | null = null;
+
+function extractHeadings(doc: ProseNode): HeadingInfo[] {
+  const data: HeadingInfo[] = [];
+  doc.descendants((node) => {
+    if (node.type.name === "heading" && node.attrs.level) {
+      data.push({ text: node.textContent, level: node.attrs.level, id: node.attrs.id });
+    }
+  });
+  return data;
+}
+
+export const tocNode = $node(TOC_NODE_ID, () => ({
   atom: true,
   group: "block",
   attrs: {
@@ -62,8 +80,15 @@ export const tocNode = $node(TOC_NODE_ID, (ctx) => ({
   toMarkdown: {
     match: (node) => node.type.name === TOC_NODE_ID,
     runner: (state, node) => {
-      const headings = outline()(ctx);
-      const list = buildTocMarkdownList(headings, node.attrs.depth);
+      let list = "";
+      try {
+        if (sharedEditorView) {
+          const headings = extractHeadings(sharedEditorView.state.doc);
+          list = buildTocMarkdownList(headings, node.attrs.depth);
+        }
+      } catch (err) {
+        console.error("[rtmk] toc serialize error", err);
+      }
       state.addNode("code", undefined, list, { lang: `${LANG_PREFIX}${node.attrs.depth}` });
     },
   },
@@ -71,8 +96,8 @@ export const tocNode = $node(TOC_NODE_ID, (ctx) => ({
 
 const mountedTocViews = new Set<{ render: () => void }>();
 
-export const tocNodeView = $view(tocNode, (ctx): NodeViewConstructor => {
-  return (node) => {
+export const tocNodeView = $view(tocNode, (): NodeViewConstructor => {
+  return (node, view) => {
     const dom = document.createElement("div");
     dom.className = "rtmk-toc-block";
     dom.contentEditable = "false";
@@ -89,27 +114,31 @@ export const tocNodeView = $view(tocNode, (ctx): NodeViewConstructor => {
     let currentDepth = node.attrs.depth;
 
     const render = () => {
-      const headings = outline()(ctx).filter((h) => h.level <= currentDepth);
-      list.innerHTML = "";
-      if (headings.length === 0) {
-        const empty = document.createElement("div");
-        empty.className = "rtmk-toc-empty";
-        empty.textContent = "No headings found.";
-        list.appendChild(empty);
-        return;
+      try {
+        const headings = extractHeadings(view.state.doc).filter((h) => h.level <= currentDepth);
+        list.innerHTML = "";
+        if (headings.length === 0) {
+          const empty = document.createElement("div");
+          empty.className = "rtmk-toc-empty";
+          empty.textContent = "No headings found.";
+          list.appendChild(empty);
+          return;
+        }
+        const minLevel = Math.min(...headings.map((h) => h.level));
+        const ul = document.createElement("ul");
+        headings.forEach((h) => {
+          const li = document.createElement("li");
+          li.style.marginLeft = `${(h.level - minLevel) * 16}px`;
+          const a = document.createElement("a");
+          a.href = `#${h.id}`;
+          a.textContent = h.text || "Untitled";
+          li.appendChild(a);
+          ul.appendChild(li);
+        });
+        list.appendChild(ul);
+      } catch (err) {
+        console.error("[rtmk] toc render error", err);
       }
-      const minLevel = Math.min(...headings.map((h) => h.level));
-      const ul = document.createElement("ul");
-      headings.forEach((h) => {
-        const li = document.createElement("li");
-        li.style.marginLeft = `${(h.level - minLevel) * 16}px`;
-        const a = document.createElement("a");
-        a.href = `#${h.id}`;
-        a.textContent = h.text || "Untitled";
-        li.appendChild(a);
-        ul.appendChild(li);
-      });
-      list.appendChild(ul);
     };
 
     const self = { render };
@@ -138,11 +167,21 @@ const tocRefreshKey = new PluginKey("rtmk-toc-refresh");
 export const tocRefreshPlugin = $prose(() => {
   return new Plugin({
     key: tocRefreshKey,
-    view: () => ({
-      update: () => {
-        mountedTocViews.forEach((v) => v.render());
-      },
-    }),
+    view: (editorView) => {
+      sharedEditorView = editorView;
+      mountedTocViews.forEach((v) => v.render());
+      return {
+        update: (view, prevState) => {
+          sharedEditorView = view;
+          if (mountedTocViews.size === 0) return;
+          if (view.state.doc.eq(prevState.doc)) return;
+          mountedTocViews.forEach((v) => v.render());
+        },
+        destroy: () => {
+          sharedEditorView = null;
+        },
+      };
+    },
   });
 });
 
