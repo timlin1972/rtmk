@@ -8,6 +8,7 @@ import { Sidebar } from "./components/Sidebar/Sidebar";
 import { AppToolbar } from "./components/AppToolbar";
 import { Editor, type EditorHandle } from "./components/Editor";
 import { EmptyState } from "./components/EmptyState";
+import { basename, notifyError } from "./lib/fileOps";
 
 function AppInner() {
   const [sidebarCollapsed, setSidebarCollapsed] = usePersistedState("rtmk:sidebar:collapsed", false);
@@ -40,6 +41,16 @@ function AppInner() {
     else favoritesApi.add(path);
   };
 
+  const handleOpenPath = async (path: string) => {
+    try {
+      await workspace.openPath(path);
+    } catch {
+      await notifyError(`Could not open "${basename(path)}". It may have been moved or deleted, or access to it may have expired.`, "Open failed");
+      recentsApi.remove(path);
+      favoritesApi.remove(path);
+    }
+  };
+
   const activeDoc = workspace.activeDoc;
 
   return (
@@ -70,7 +81,7 @@ function AppInner() {
           onSwitchTab={workspace.switchTab}
           onCloseTab={workspace.closeTab}
           onToggleFavorite={toggleFavorite}
-          onOpenPath={workspace.openPath}
+          onOpenPath={handleOpenPath}
         />
         <div className="rtmk-main">
           {activeDoc ? (

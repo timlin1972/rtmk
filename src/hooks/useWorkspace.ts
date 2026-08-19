@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { pickOpen, pickSaveAs, readMarkdown, writeMarkdown, basename, confirmDiscard } from "../lib/fileOps";
+import { pickOpen, pickSaveAs, readMarkdown, writeMarkdown, basename, confirmDiscard, notifyError } from "../lib/fileOps";
 
 export type OpenDoc = {
   id: string;
@@ -82,7 +82,12 @@ export function useWorkspace(onFileTouched?: (path: string) => void) {
         if (!picked) return null;
         targetPath = picked;
       }
-      await writeMarkdown(targetPath, doc.content);
+      try {
+        await writeMarkdown(targetPath, doc.content);
+      } catch {
+        await notifyError(`Could not save "${basename(targetPath)}". The file may be read-only, or access to it may have expired.`, "Save failed");
+        return null;
+      }
       onFileTouched?.(targetPath);
       const updated: OpenDoc = {
         ...doc,

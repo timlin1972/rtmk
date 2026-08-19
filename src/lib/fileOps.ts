@@ -1,4 +1,4 @@
-import { open, save, ask } from "@tauri-apps/plugin-dialog";
+import { open, save, ask, message } from "@tauri-apps/plugin-dialog";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 
 const MARKDOWN_FILTER = [{ name: "Markdown", extensions: ["md", "markdown"] }];
@@ -25,6 +25,10 @@ export function basename(path: string): string {
   return path.split(/[\\/]/).pop() ?? path;
 }
 
-export async function confirmDiscard(message: string): Promise<boolean> {
-  return ask(message, { title: "Unsaved changes", kind: "warning" });
+export async function confirmDiscard(prompt: string): Promise<boolean> {
+  return ask(prompt, { title: "Unsaved changes", kind: "warning" });
+}
+
+export async function notifyError(prompt: string, title = "Error"): Promise<void> {
+  await message(prompt, { title, kind: "error" });
 }
